@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Billing Template - Scipy Technologies</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body {
+      background-color: #f0f2f5;
+      color: #212529;
+      transition: all 0.3s;
+    }
+
+    .form-section {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      background: #343a40;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      margin-top: 2rem;
+    }
+
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .form-section {
+      background-color: #1e1e1e;
+      color: #e0e0e0;
+      box-shadow: 0 0 10px rgba(255,255,255,0.05);
+    }
+
+    body.dark-mode input,
+    body.dark-mode textarea {
+      background-color: #2a2a2a;
+      color: #e0e0e0;
+      border-color: #444;
+    }
+
+    .toggle-dark {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+    }
+
+    .error {
+      color: red;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="toggle-dark">
+    <button id="toggleDarkMode" class="btn btn-outline-secondary">🌙 Dark Mode</button>
+  </div>
+
+  <div class="container py-5">
+    <h2 class="text-center mb-4">Billing Template - Scipy Technologies</h2>
+
+    <div class="form-section">
+      <form id="billingForm" novalidate>
+        <div class="mb-3">
+          <label class="form-label">Customer Name</label>
+          <input type="text" class="form-control" name="customer" required>
+          <div class="error" id="errorCustomer"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input type="email" class="form-control" name="email" required>
+          <div class="error" id="errorEmail"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Address</label>
+          <textarea class="form-control" name="address" required></textarea>
+          <div class="error" id="errorAddress"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Bill Details</label>
+          <textarea class="form-control" name="details" required></textarea>
+          <div class="error" id="errorDetails"></div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Amount (INR)</label>
+          <input type="number" class="form-control" name="amount" required>
+          <div class="error" id="errorAmount"></div>
+        </div>
+        <button type="submit" class="btn btn-success">Generate Bill PDF</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    &copy; 2025 Scipy Technologies | Billing System
+  </footer>
+
+  <script>
+    let invoiceCounter = 1000;
+
+    function showError(id, message) {
+      document.getElementById(id).textContent = message;
+    }
+
+    function clearErrors() {
+      ["errorCustomer", "errorEmail", "errorAddress", "errorDetails", "errorAmount"].forEach(id => {
+        document.getElementById(id).textContent = "";
+      });
+    }
+
+    function validateForm(data) {
+      let valid = true;
+      clearErrors();
+
+      const nameRegex = /^[a-zA-Z\s]+$/;
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (!nameRegex.test(data.customer)) {
+        showError("errorCustomer", "Name must contain only letters and spaces.");
+        valid = false;
+      }
+
+      if (!emailRegex.test(data.email)) {
+        showError("errorEmail", "Invalid email format.");
+        valid = false;
+      }
+
+      if (data.address.length < 10) {
+        showError("errorAddress", "Address must be at least 10 characters.");
+        valid = false;
+      }
+
+      if (data.details.length < 5) {
+        showError("errorDetails", "Bill details must be at least 5 characters.");
+        valid = false;
+      }
+
+      if (isNaN(data.amount) || parseFloat(data.amount) <= 0) {
+        showError("errorAmount", "Amount must be a positive number.");
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    document.getElementById("billingForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        customer: form.customer.value.trim(),
+        email: form.email.value.trim(),
+        address: form.address.value.trim(),
+        details: form.details.value.trim(),
+        amount: form.amount.value.trim(),
+        invoice: `SCIPY-${invoiceCounter++}`
+      };
+
+      if (!validateForm(data)) return;
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text("Scipy Technologies", 20, 20);
+      doc.setFontSize(12);
+      doc.text(`Invoice No: ${data.invoice}`, 20, 30);
+      doc.text(`Customer Name: ${data.customer}`, 20, 40);
+      doc.text(`Email: ${data.email}`, 20, 50);
+      doc.text(`Address: ${data.address}`, 20, 60);
+      doc.text(`Bill Details:`, 20, 70);
+      doc.text(data.details, 30, 80);
+      doc.text(`Total Amount: ₹${data.amount}`, 20, 100);
+
+      doc.save(`${data.invoice}.pdf`);
+    });
+
+    document.getElementById("toggleDarkMode").addEventListener("click", function () {
+      document.body.classList.toggle("dark-mode");
+      this.textContent = document.body.classList.contains("dark-mode") ? "☀️ Light Mode" : "🌙 Dark Mode";
+    });
+  </script>
+</body>
+</html>

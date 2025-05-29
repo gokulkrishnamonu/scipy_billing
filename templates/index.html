@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Login - Scipy CRM</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    .login-box {
+      background: #1e1e2f;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0,0,0,0.3);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .form-control {
+      background-color: #2c2c3e;
+      color: #fff;
+      border: none;
+    }
+
+    .form-control::placeholder {
+      color: #aaa;
+    }
+
+    .form-control:focus {
+      background-color: #2c2c3e;
+      color: #fff;
+      border-color: #6c63ff;
+      box-shadow: none;
+    }
+
+    .input-group-text {
+      background-color: #2c2c3e;
+      border: none;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background-color: #6c63ff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: #584fd3;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 1050;
+    }
+
+    .toast {
+      background-color: #222;
+      color: #fff;
+    }
+
+    .error-text {
+      font-size: 0.9rem;
+      color: #ff6b6b;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box text-center">
+    <h3 class="mb-4">Admin Login</h3>
+    <form id="adminLoginForm" novalidate>
+      <div class="mb-3 text-start">
+        <label for="username" class="form-label">Username</label>
+        <input type="text" class="form-control" id="username" placeholder="Enter your username">
+        <div id="usernameError" class="error-text mt-1"></div>
+      </div>
+      <div class="mb-3 text-start">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <input type="password" class="form-control" id="password" placeholder="Enter your password">
+          <span class="input-group-text" onclick="togglePassword()">
+            <i class="fas fa-eye" id="toggleIcon"></i>
+          </span>
+        </div>
+        <div id="passwordError" class="error-text mt-1"></div>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Login</button>
+    </form>
+  </div>
+
+  <div class="toast-container">
+    <div id="loginToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="toast-header bg-dark text-white">
+        <strong class="me-auto">Login Status</strong>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body">Loading...</div>
+    </div>
+  </div>
+
+  <script>
+    function togglePassword() {
+      const password = document.getElementById('password');
+      const icon = document.getElementById('toggleIcon');
+      if (password.type === 'password') {
+        password.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+      } else {
+        password.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+      }
+    }
+
+    function showToast(message) {
+      document.querySelector("#loginToast .toast-body").textContent = message;
+      new bootstrap.Toast(document.getElementById("loginToast")).show();
+    }
+
+    function validatePassword(password) {
+      const regex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$/;
+      return regex.test(password);
+    }
+
+    document.getElementById("adminLoginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const usernameError = document.getElementById("usernameError");
+      const passwordError = document.getElementById("passwordError");
+
+      let isValid = true;
+
+      // Reset errors
+      usernameError.textContent = "";
+      passwordError.textContent = "";
+
+      if (username === "") {
+        usernameError.textContent = "Username is required.";
+        isValid = false;
+      }
+
+      if (password === "") {
+        passwordError.textContent = "Password is required.";
+        isValid = false;
+      } else if (!validatePassword(password)) {
+        passwordError.textContent = "Password must be at least 6 characters and contain letters and numbers.";
+        isValid = false;
+      }
+
+      if (!isValid) return;
+
+      showToast("Logging in...");
+      setTimeout(() => {
+        if (username === "admin" && password === "admin123") {
+          showToast("Login successful!");
+          window.location.href = "/admin-dashboard"; // Redirect
+        } else {
+          showToast("Invalid credentials!");
+        }
+      }, 1000);
+    });
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
